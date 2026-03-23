@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latin Vocab Master</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        h1 { color: #2c3e50; margin-bottom: 1.5rem; }
+        .menu-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 6px; background: #3498db; color: white; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        .menu-btn:hover { background: #2980b9; }
+        .hidden { display: none; }
+        input[type="text"] { width: 80%; padding: 12px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 6px; outline: none; margin-bottom: 1rem; text-align: center;}
+        .latin-word { font-size: 2.2rem; font-weight: bold; color: #2c3e50; margin-bottom: 1rem; }
+        .feedback { font-weight: bold; margin-bottom: 1rem; min-height: 1.5rem; }
+        .correct { color: #27ae60; }
+        .incorrect { color: #e74c3c; }
+        .stats { font-size: 0.9rem; color: #7f8c8d; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="start-page">
+        <h1>Latin Vocab Tester</h1>
+        <p>Select Chapter(s):</p>
+        <button class="menu-btn" onclick="startQuiz(1)">Chapter 1</button>
+        <button class="menu-btn" onclick="startQuiz(2)">Chapter 2</button>
+        <button class="menu-btn" onclick="startQuiz(3)">Chapter 3</button>
+        <button class="menu-btn" onclick="startQuiz(4)">Chapter 4</button>
+        <button class="menu-btn" onclick="startQuiz('all')" style="background:#2ecc71">All Chapters</button>
+    </div>
+
+    <div id="quiz-page" class="hidden">
+        <div class="stats" id="progress">Word 1 of X</div>
+        <div class="latin-word" id="display-latin">---</div>
+        <div class="feedback" id="feedback"></div>
+        <input type="text" id="answer-input" placeholder="Type English & press Enter..." autocomplete="off">
+        <div class="stats" id="score-display">Score: 0</div>
+        <button class="menu-btn" onclick="location.reload()" style="background:#95a5a6; margin-top:20px;">Exit to Menu</button>
+    </div>
+</div>
+
+<script>
+const vocab = {
+    1: [
+        {l: "amō", e: "love, like"}, {l: "dea", e: "goddess"}, {l: "deus", e: "god"}, {l: "et", e: "and, even"}, {l: "etiam", e: "also, even"}, {l: "fēmina", e: "woman"}, {l: "fīlia", e: "daughter"}, {l: "fīlius", e: "son"}, {l: "homō", e: "man, human being, human"}, {l: "īrātus", e: "angry"}, {l: "lacrimō", e: "weep, cry"}, {l: "laetus", e: "happy"}, {l: "laudō", e: "praise"}, {l: "līberī", e: "children"}, {l: "māter", e: "mother"}, {l: "multus", e: "much, many"}, {l: "pater", e: "father"}, {l: "pulcher", e: "beautiful, handsome"}, {l: "pūniō", e: "punish"}, {l: "rēgīna", e: "queen"}, {l: "regō", e: "rule"}, {l: "rēx", e: "king"}, {l: "saepe", e: "often"}, {l: "saevus", e: "savage, cruel"}, {l: "sed", e: "but"}, {l: "sum", e: "be"}, {l: "terreō", e: "frighten, terrify"}, {l: "tum", e: "then"}, {l: "uxor", e: "wife"}
+    ],
+    2: [
+        {l: "ad", e: "to, towards, at"}, {l: "arma", e: "arms, weapons"}, {l: "audāx", e: "bold, daring"}, {l: "bellum", e: "war"}, {l: "capiō", e: "take, catch, capture, make (a plan)"}, {l: "contrā", e: "against"}, {l: "corpus", e: "body"}, {l: "currō", e: "run"}, {l: "eō", e: "go"}, {l: "flūmen", e: "river"}, {l: "fortis", e: "brave, strong"}, {l: "fortiter", e: "bravely, strongly"}, {l: "gladius", e: "sword"}, {l: "Graecus", e: "Greek"}, {l: "hasta", e: "spear"}, {l: "iaciō", e: "throw"}, {l: "in", e: "into, onto"}, {l: "ingēns", e: "huge"}, {l: "inquit", e: "he says, she says, said, they say"}, {l: "interficiō", e: "kill"}, {l: "maneō", e: "remain, stay"}, {l: "nōn", e: "not"}, {l: "per", e: "through, along"}, {l: "perīculum", e: "danger"}, {l: "prope", e: "near"}, {l: "sagitta", e: "arrow"}, {l: "silva", e: "wood"}, {l: "timeō", e: "fear, be afraid"}, {l: "trāns", e: "across"}
+    ],
+    3: [
+        {l: "ā, ab", e: "from, away from, by"}, {l: "ascendō", e: "climb"}, {l: "audiō", e: "hear, listen to"}, {l: "auxilium", e: "help"}, {l: "bonus", e: "good"}, {l: "caelum", e: "sky, heaven"}, {l: "celeriter", e: "quickly"}, {l: "cōnspiciō", e: "catch sight of, notice"}, {l: "cum", e: "with"}, {l: "dē", e: "from, down from, about"}, {l: "dēscendō", e: "go down, come down"}, {l: "difficilis", e: "difficult"}, {l: "diū", e: "for a long time"}, {l: "ē, ex", e: "from, out of, out from"}, {l: "equus", e: "horse"}, {l: "facilis", e: "easy"}, {l: "fēlīx", e: "fortunate, happy, lucky"}, {l: "in", e: "in, on"}, {l: "iubeō", e: "order"}, {l: "magnus", e: "big, large, great"}, {l: "malus", e: "evil, bad"}, {l: "mare", e: "sea"}, {l: "mōns", e: "mountain"}, {l: "ōlim", e: "once, some time ago"}, {l: "petō", e: "make for, seek, beg, ask for"}, {l: "possum", e: "can, be able"}, {l: "pugnō", e: "fight"}, {l: "subitō", e: "suddenly"}, {l: "tandem", e: "at last, finally"}, {l: "terra", e: "ground, land, country"}
+    ],
+    4: [
+        {l: "aedificō", e: "build"}, {l: "ager", e: "field"}, {l: "aurum", e: "gold"}, {l: "crēdō", e: "believe, trust"}, {l: "crūdēlis", e: "cruel"}, {l: "cūr?", e: "why?"}, {l: "dō", e: "give"}, {l: "dōnum", e: "gift, present"}, {l: "faciō", e: "make, do"}, {l: "ferō", e: "bring, carry, bear"}, {l: "habeō", e: "have, hold"}, {l: "īra", e: "anger"}, {l: "miser", e: "miserable, wretched, sad"}, {l: "nōlō", e: "not want, refuse"}, {l: "nōmen", e: "name"}, {l: "nōnne...?", e: "surely?"}, {l: "num...?", e: "surely not?"}, {l: "pecūnia", e: "money"}, {l: "persuādeō", e: "persuade"}, {l: "perterritus", e: "terrified"}, {l: "pōnō", e: "put, place, set up"}, {l: "quandō?", e: "when?"}, {l: "quod", e: "because"}, {l: "semper", e: "always"}, {l: "tamen", e: "however"}, {l: "templum", e: "temple"}, {l: "trīstis", e: "sad"}, {l: "ubi?", e: "where?"}, {l: "volō", e: "want, wish, be willing"}
+    ]
+};
+
+let currentPool = [];
+let currentIndex = 0;
+let score = 0;
+
+function startQuiz(chapter) {
+    if (chapter === 'all') {
+        currentPool = [...vocab[1], ...vocab[2], ...vocab[3], ...vocab[4]];
+    } else {
+        currentPool = [...vocab[chapter]];
+    }
+    currentPool.sort(() => Math.random() - 0.5);
+    document.getElementById('start-page').classList.add('hidden');
+    document.getElementById('quiz-page').classList.remove('hidden');
+    showWord();
+}
+
+function showWord() {
+    if (currentIndex >= currentPool.length) {
+        document.getElementById('display-latin').innerText = "Session Complete!";
+        document.getElementById('answer-input').classList.add('hidden');
+        return;
+    }
+    document.getElementById('progress').innerText = `Word ${currentIndex + 1} of ${currentPool.length}`;
+    document.getElementById('display-latin').innerText = currentPool[currentIndex].l;
+    document.getElementById('answer-input').value = "";
+    document.getElementById('answer-input').focus();
+}
+
+document.getElementById('answer-input').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') checkAnswer();
+});
+
+function checkAnswer() {
+    const input = document.getElementById('answer-input').value.toLowerCase().trim();
+    const correctStr = currentPool[currentIndex].e.toLowerCase();
+    const acceptedAnswers = correctStr.split(',').map(s => s.trim().replace(/\(.*?\)/g, "").trim());
+    
+    let isCorrect = acceptedAnswers.some(ans => input === ans || (input.length > 2 && ans.includes(input)));
+
+    const feedback = document.getElementById('feedback');
+    if (isCorrect) {
+        feedback.innerText = "Correct!";
+        feedback.className = "feedback correct";
+        score++;
+    } else {
+        feedback.innerText = `Incorrect. Answer: ${currentPool[currentIndex].e}`;
+        feedback.className = "feedback incorrect";
+    }
+
+    document.getElementById('score-display').innerText = `Score: ${score}`;
+    currentIndex++;
+    setTimeout(() => {
+        feedback.innerText = "";
+        showWord();
+    }, 1500);
+}
+</script>
+</body>
+</html>
