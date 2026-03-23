@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Latin Vocab - Dark Mode</title>
+    <title>Latin Vocab - Dark Slate</title>
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; 
-            background-color: #121212; 
-            color: #e0e0e0; 
+            background-color: #0f111a; /* Very dark blue-gray */
+            color: #d1d5db; /* Light gray text */
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -16,36 +16,38 @@
             margin: 0; 
         }
         .container { 
-            background: #1e1e1e; 
-            padding: 2rem; 
-            border-radius: 12px; 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5); 
+            background: #1c1f26; /* Dark slate card */
+            padding: 2.5rem; 
+            border-radius: 16px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6); 
             width: 90%; 
             max-width: 450px; 
             text-align: center; 
-            border: 1px solid #333;
+            border: 1px solid #2d333d; /* Subtle blue-gray border */
         }
-        h1 { color: #bb86fc; margin-bottom: 1.5rem; }
+        h1 { color: #60a5fa; margin-bottom: 1.5rem; letter-spacing: -0.5px; } /* Hint of blue */
         .menu-btn { 
             display: block; width: 100%; padding: 12px; margin: 10px 0; 
-            border: none; border-radius: 6px; background: #D3D3D3; 
-            color: white; font-size: 1rem; cursor: pointer; 
-            transition: 0.2s;
+            border: 1px solid #374151; border-radius: 8px; 
+            background: #2d333d; /* Grayish button */
+            color: #e5e7eb; font-size: 1rem; cursor: pointer; 
+            transition: all 0.2s ease;
         }
-        .menu-btn:hover { background: #6200ee; }
+        .menu-btn:hover { background: #3b82f6; border-color: #60a5fa; color: white; } /* Blue highlight on hover */
         .hidden { display: none; }
         input[type="text"] { 
-            width: 80%; padding: 12px; font-size: 1.1rem; 
-            border: 2px solid #333; border-radius: 6px; 
-            background: #121212; color: #fff; 
+            width: 85%; padding: 14px; font-size: 1.1rem; 
+            border: 2px solid #374151; border-radius: 8px; 
+            background: #0f111a; color: #fff; 
             outline: none; margin-bottom: 1rem; text-align: center;
+            transition: border-color 0.2s;
         }
-        input[type="text"]:focus { border-color: #FFFFFF; }
-        .latin-word { font-size: 2.2rem; font-weight: bold; color: #F5F5F5; margin-bottom: 1rem; }
-        .feedback { font-weight: bold; margin-bottom: 1rem; min-height: 1.5rem; }
-        .correct { color: #4caf50; }
-        .incorrect { color: #FF0000; }
-        .stats { font-size: 0.9rem; color: #999; margin-top: 1rem; }
+        input[type="text"]:focus { border-color: #60a5fa; } /* Blue focus glow */
+        .latin-word { font-size: 2.4rem; font-weight: 700; color: #f9fafb; margin-bottom: 1rem; }
+        .feedback { font-weight: 600; margin-bottom: 1rem; min-height: 1.5rem; }
+        .correct { color: #34d399; } /* Emerald green */
+        .incorrect { color: #f87171; } /* Soft red */
+        .stats { font-size: 0.85rem; color: #6b7280; margin-top: 1rem; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -53,12 +55,12 @@
 <div class="container">
     <div id="start-page">
         <h1>des romanis latin thing</h1>
-        <p>select da chapter:</p>
+        <p style="color: #6b7280;">select da chapter:</p>
         <button class="menu-btn" onclick="startQuiz(1)">Chapter 1</button>
         <button class="menu-btn" onclick="startQuiz(2)">Chapter 2</button>
         <button class="menu-btn" onclick="startQuiz(3)">Chapter 3</button>
         <button class="menu-btn" onclick="startQuiz(4)">Chapter 4</button>
-        <button class="menu-btn" onclick="startQuiz('all')" style="background:#03dac6; color:#000;">All Chapters</button>
+        <button class="menu-btn" onclick="startQuiz('all')" style="background:#1d4ed8; border-color:#3b82f6; color:white; margin-top:15px;">All Chapters</button>
     </div>
 
     <div id="quiz-page" class="hidden">
@@ -67,7 +69,7 @@
         <div class="feedback" id="feedback"></div>
         <input type="text" id="answer-input" placeholder="Type English & Enter..." autocomplete="off">
         <div class="stats" id="score-display">score: 0</div>
-        <button class="menu-btn" onclick="location.reload()" style="background:#333; margin-top:20px;">leave</button>
+        <button class="menu-btn" onclick="location.reload()" style="background:transparent; border-color:#374151; color:#6b7280; margin-top:20px; font-size: 0.8rem;">leave</button>
     </div>
 </div>
 
@@ -108,7 +110,7 @@ function check() {
         inputField.style.borderColor = "#4caf50";
         inputField.style.backgroundColor = "rgba(76, 175, 80, 0.1)";
         score++; 
-        delay = 250; 
+        delay = 200; 
     } else { 
         f.innerText = `Wrong: ${pool[idx].e}`; 
         f.className = "feedback incorrect"; 
