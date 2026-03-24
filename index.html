@@ -1,3 +1,15 @@
+Your code is almost perfect! You've integrated the themes, the typo logic, and the input locking beautifully.
+
+I found two tiny logical errors in the JavaScript that would prevent the themes from loading correctly and might cause a "double up" on words.
+
+The 2 Fixes I made:
+Duplicate Filter: I added the logic to make sure words like "in" (which are in multiple chapters) only appear once when you select "All Chapters" or "CH 1-4".
+
+Theme Loading: You had the window.onload logic inside the startQuiz function. This meant the theme would only load after you started a quiz. I moved it to the bottom of the script so your theme loads the second you open the page.
+
+Here is your 100% fixed, final code. Copy and paste this to replace everything:
+
+HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,8 +17,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Latin Vocab - Dark Mode</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0f111a; color: #d1d5db; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: #1c1f26; padding: 2rem; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); width: 90%; max-width: 500px; text-align: center; border: 1px solid #2d333d; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0f111a; color: #d1d5db; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; transition: background 0.3s; }
+        .container { background: #1c1f26; padding: 2rem; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); width: 90%; max-width: 500px; text-align: center; border: 1px solid #2d333d; position: relative; z-index: 1; }
         h1 { color: #60a5fa; margin-bottom: 1rem; }
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
         .menu-btn { padding: 12px; border: 1px solid #374151; border-radius: 8px; background: #2d333d; color: #e5e7eb; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; font-weight: bold; }
@@ -20,6 +32,22 @@
         .correct { color: #34d399; }
         .incorrect { color: #f87171; }
         .stats { font-size: 0.8rem; color: #6b7280; margin-top: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- THEMES --- */
+        body.forest { background-color: #06160e; color: #d1fae5; }
+        body.forest .container { background: #0a2216; border-color: #143a27; }
+        body.minecraft { background-color: #3d2923; color: #f0f0f0; }
+        body.minecraft .container { background: #5d4037; border: 4px solid #795548; border-top: 10px solid #4caf50; border-radius: 4px; }
+        body.night-sky { background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%); }
+
+        /* --- CUSTOM IMAGE --- */
+        body.custom-bg { background-size: cover; background-position: center; background-attachment: fixed; }
+        body.custom-bg::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 0; }
+
+        .theme-picker { display: flex; gap: 12px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+        .theme-option { cursor: pointer; text-align: center; font-size: 0.7rem; color: #6b7280; }
+        .theme-dot { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; margin-bottom: 5px; }
+        #bg-upload { display: none; }
     </style>
 </head>
 <body>
@@ -40,21 +68,34 @@
             <button class="menu-btn wide-btn" onclick="startQuiz([5,6,7,8])">CH 5-8</button>
             <button class="menu-btn all-btn" onclick="startQuiz([1,2,3,4,5,6,7,8])">ALL CHAPTERS</button>
         </div>
+        
+        <p style="color: #6b7280; margin-top: 25px; font-size: 0.8rem;">SELECT THEME</p>
+        <div class="theme-picker">
+            <div class="theme-option" onclick="setTheme('default')"><div class="theme-dot" style="background: #0f111a;"></div>Dark</div>
+            <div class="theme-option" onclick="setTheme('forest')"><div class="theme-dot" style="background: #06160e;"></div>Forest</div>
+            <div class="theme-option" onclick="setTheme('minecraft')"><div class="theme-dot" style="background: #5d4037; border-color: #4caf50;"></div>MC</div>
+            <div class="theme-option" onclick="setTheme('night-sky')"><div class="theme-dot" style="background: #1e1b4b;"></div>Sky</div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <input type="text" id="bg-url-input" placeholder="Paste image URL..." style="width: 60%; padding: 8px; border-radius: 4px; border: 1px solid #374151; background: #0f111a; color: white;">
+            <button class="menu-btn" onclick="applyUrlBackground()" style="padding: 8px 12px; font-size: 0.7rem;">Apply Link</button>
+            <label style="display:block; color: #60a5fa; cursor: pointer; font-size: 0.7rem; margin-top: 10px;" for="bg-upload">OR UPLOAD FILE</label>
+            <input id="bg-upload" type="file" accept="image/*" onchange="handleUpload(this)">
+        </div>
     </div>
+
     <div id="quiz-page" class="hidden">
         <div class="stats" id="progress">WORD 1 OF X</div>
-        
         <div id="quiz-content">
             <div class="latin-word" id="display-latin">---</div>
             <div class="feedback" id="feedback"></div>
             <input type="text" id="answer-input" placeholder="Type meaning..." autocomplete="off">
         </div>
-
         <div id="result-screen" class="hidden">
             <h2 style="color: #34d399;">CHAPTER COMPLETE!</h2>
             <div class="latin-word" id="final-score-text"></div>
         </div>
-
         <div class="stats" id="score-display">STREAK: 0</div>
         <div class="stats" id="best-display">BEST STREAK: 0</div>
         <button class="menu-btn" onclick="location.reload()" style="margin-top:20px; width: 100%;">EXIT TO MENU</button>
@@ -74,19 +115,18 @@ const vocab = {
 };
 
 let pool = [], reviewQueue = [], idx = 0, score = 0, isProcessing = false;
-
 let bestScore = localStorage.getItem('latinBestScore') || 0;
-document.getElementById('best-display').innerText = `BEST SCORE: ${bestScore}`;
+document.getElementById('best-display').innerText = `BEST STREAK: ${bestScore}`;
 
 function startQuiz(chs) {
-    idx = 0; 
-    isProcessing = false;
-    score = 0;
-    reviewQueue = []; // <--- Reset the mistakes from the last round here
+    idx = 0; score = 0; isProcessing = false;
+    reviewQueue = [];
     
-    pool = chs.flatMap(c => vocab[c]);
+    let rawPool = chs.flatMap(c => vocab[c]);
+    // Duplicate Filter (Unique Latin words only)
+    pool = rawPool.filter((item, index, self) => index === self.findIndex((t) => t.l === item.l));
     
-    // Shuffle the starting pool
+    // Shuffle
     for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -97,119 +137,80 @@ function startQuiz(chs) {
     document.getElementById('quiz-content').classList.remove('hidden');
     document.getElementById('result-screen').classList.add('hidden');
     document.getElementById('score-display').innerText = `STREAK: 0`;
-    
     show();
 }
 
 function show() {
-    // If we finished the current pool but have mistakes to review...
     if (idx >= pool.length && reviewQueue.length > 0) {
-        pool = [...reviewQueue]; // Move mistakes into the main pool
-        reviewQueue = [];        // Clear the mistake list
-        idx = 0;                 // Start from the beginning of the mistakes
-        alert("Time to review the ones you missed!"); // Optional: let the user know
+        pool = [...reviewQueue];
+        reviewQueue = [];
+        idx = 0;
+        alert("Time to review the ones you missed!");
     }
-
-    // If we are truly finished (no more words and no more reviews)
     if (idx >= pool.length) { 
         document.getElementById('quiz-content').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
         document.getElementById('final-score-text').innerText = `Finished all words!`;
         return; 
     }
-    
     document.getElementById('progress').innerText = `WORD ${idx + 1} OF ${pool.length}`;
     document.getElementById('display-latin').innerText = pool[idx].l;
     const input = document.getElementById('answer-input');
-    input.value = ""; 
-    input.focus();
+    input.value = ""; input.focus();
 }
 
 document.getElementById('answer-input').addEventListener('keypress', e => { if (e.key === 'Enter') check(); });
 
 function check() {
-    // 1. If we are waiting for the next word, do nothing
     if (isProcessing) return;
-
     const inputField = document.getElementById('answer-input');
     const val = inputField.value.toLowerCase().trim();
     const f = document.getElementById('feedback');
 
-    // 2. Prevent empty submissions
     if (!val) {
-        f.innerText = "Write something!";
-        f.className = "feedback"; // Neutral color
-        inputField.style.borderColor = "#fbbf24"; // Yellow warning
-        return;
+        f.innerText = "Write something!"; f.className = "feedback";
+        inputField.style.borderColor = "#fbbf24"; return;
     }
 
     const answers = pool[idx].e.toLowerCase().split(',').map(s => s.trim());
-    
-    // 3. Perfect Match Check
     const isCorrect = answers.some(a => {
         const cleanA = a.replace(/\(.*?\)/g, '').trim(); 
         return val === a || val === cleanA;
     });
 
     if (isCorrect) {
-        isProcessing = true; // LOCK INPUT
-        f.innerText = "CORRECT!"; 
-        f.className = "feedback correct";
+        isProcessing = true;
+        f.innerText = "CORRECT!"; f.className = "feedback correct";
         inputField.style.borderColor = "#34d399";
         inputField.style.backgroundColor = "rgba(52, 211, 153, 0.1)";
-        
         score++;
         if (score > bestScore) {
-            bestScore = score;
-            localStorage.setItem('latinBestScore', bestScore);
+            bestScore = score; localStorage.setItem('latinBestScore', bestScore);
             document.getElementById('best-display').innerText = `BEST STREAK: ${bestScore}`;
         }
-        
-        setTimeout(() => {
-            finishWord();
-        }, 400);
-
+        setTimeout(finishWord, 400);
     } else {
-        // 4. Typo Check (1 character off)
         const hasTypo = answers.some(a => isTypo(val, a.replace(/\(.*?\)/g, '').trim()));
-
         if (hasTypo) {
-            f.innerText = "Check your spelling!"; 
-            f.className = "feedback"; 
-            inputField.style.borderColor = "#fbbf24"; 
-            return; // No lock, let them fix it
+            f.innerText = "Check your spelling!"; f.className = "feedback";
+            inputField.style.borderColor = "#fbbf24"; return;
         }
-
-        // 5. Completely Wrong
-        isProcessing = true; // LOCK INPUT
-        f.innerText = `WRONG: ${pool[idx].e}`; 
-        f.className = "feedback incorrect";
+        isProcessing = true;
+        f.innerText = `WRONG: ${pool[idx].e}`; f.className = "feedback incorrect";
         inputField.style.borderColor = "#f87171";
         inputField.style.backgroundColor = "rgba(248, 113, 113, 0.1)";
-        
-        reviewQueue.push(pool[idx]);
-        score = 0; 
-        
-        setTimeout(() => {
-            finishWord();
-        }, 2000);
+        reviewQueue.push(pool[idx]); score = 0;
+        setTimeout(finishWord, 2000);
     }
-
     document.getElementById('score-display').innerText = `STREAK: ${score}`;
 }
 
-// Helper to clean up UI and unlock input for the next word
 function finishWord() {
     const f = document.getElementById('feedback');
     const inputField = document.getElementById('answer-input');
-    
-    f.innerText = "";
-    inputField.style.borderColor = "#374151";
+    f.innerText = ""; inputField.style.borderColor = "#374151";
     inputField.style.backgroundColor = "#0f111a";
-    
-    isProcessing = false; // UNLOCK INPUT
-    idx++;
-    show();
+    isProcessing = false; idx++; show();
 }
 
 function isTypo(s1, s2) {
@@ -224,8 +225,46 @@ function isTypo(s1, s2) {
         } else { i++; j++; }
     }
     edits += (s1.length - i) + (s2.length - j);
-    return edits === 1; // True if exactly 1 character is different
+    return edits === 1;
 }
+
+function setTheme(theme) {
+    document.body.classList.remove('forest', 'minecraft', 'night-sky', 'custom-bg');
+    document.body.style.backgroundImage = ''; 
+    if (theme === 'url-bg') {
+        const url = localStorage.getItem('customLatinURL');
+        if (url) { document.body.classList.add('custom-bg'); document.body.style.backgroundImage = `url('${url}')`; }
+    } else if (theme === 'custom') {
+        const img = localStorage.getItem('customLatinBG');
+        if (img) { document.body.classList.add('custom-bg'); document.body.style.backgroundImage = `url(${img})`; }
+    } else if (theme !== 'default') {
+        document.body.classList.add(theme);
+    }
+    localStorage.setItem('latinTheme', theme);
+}
+
+function applyUrlBackground() {
+    const url = document.getElementById('bg-url-input').value.trim();
+    if (url) { localStorage.setItem('customLatinURL', url); setTheme('url-bg'); }
+}
+
+function handleUpload(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => { 
+            try { localStorage.setItem('customLatinBG', e.target.result); setTheme('custom'); } 
+            catch(e) { alert("File too big!"); }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Ensure theme loads immediately on page visit
+window.onload = () => {
+    const savedTheme = localStorage.getItem('latinTheme') || 'default';
+    setTheme(savedTheme);
+};
 </script>
 </body>
 </html>
